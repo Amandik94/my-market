@@ -83,5 +83,40 @@ def add_to_cart(request, product_id):
         CartItem.objects.create(cart=cart, product=product, quantity=1)
     return redirect('view_cart')
 
+@login_required
+def remove_from_cart(request, product_id):
+    cart = get_object_or_404(Cart, user=request.user)
 
+    CartItem.objects.filter(
+        cart=cart,
+        product_id=product_id
+    ).delete()
+
+    return redirect('view_cart')
+
+@login_required
+def update_cart_item(request, product_id):
+    cart = get_object_or_404(Cart, user=request.user)
+
+    try:
+        cart_item = CartItem.objects.get(
+            cart=cart,
+            product_id=product_id
+        )
+    except CartItem.DoesNotExist:
+        return redirect('view_cart')
+
+    action = request.GET.get('action')
+
+    if action == 'inc':
+        cart_item.quantity += 1
+        cart_item.save()
+    elif action == 'dec':
+        cart_item.quantity -= 1
+        if cart_item.quantity <= 0:
+            cart_item.delete()
+        else:
+            cart_item.save()
+
+    return redirect('view_cart')
 
