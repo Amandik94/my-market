@@ -19,8 +19,8 @@
                 <tr>
                     <td>{{ item.product.name }}</td>
                     <td>{{ item.quantity }}</td>
-                    <td>{{ item.product.price }} ₽</td>
-                    <td>{{ item.get_total_price }} ₽</td>
+                    <td>{{ item.product.price }} ₸</td>
+                    <td>{{ item.get_total_price }} ₸</td>
                     <td class="d-flex gap-2">
                         <a href="{% url 'update_cart_item' item.product.id %}?action=inc" class="btn btnsm btn-success">+</a>
                         <a href="{% url 'update_cart_item' item.product.id %}?action=dec" class="btn btnsm btn-warning">-</a>
@@ -34,8 +34,10 @@
             </tbody>
         </table>
         <div class="text-end">
-            <h4>Общая сумма: {{ total_price }} ₽</h4>
-            <a href="#" class="btn btn-success">Оформить заказ</a>
+            <h4>Общая сумма: {{ total_price }} ₸</h4>
+            {% for item in items %}
+            <a href="{% url 'create_payment' item.product.id %}" class="btn btn-success">Оплатить</a>
+            {% endfor %}
         </div>
     {% else %}
         <p>Ваша корзина пуста.</p>

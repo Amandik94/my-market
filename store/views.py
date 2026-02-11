@@ -1,9 +1,43 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from .forms import RegisterForm, LoginForm
-from .models import Product
+from .models import Product, Order
 from .cart import Cart, CartItem
+from yookassa import Configuration, Payment
+from django.conf import settings
+import uuid
+
+Configuration.account_id = settings.YOOKASSA_SHOP_ID
+Configuration.secret_key = settings.YOOKASSA_SHOP_KEY
+
+def create_payment(request, product_id):
+    product = Product.objects.get(id=product_id)
+
+    payment = Payment.create({
+        "amount": {
+            "value": str(product.price),
+            "currency": "RUB"
+        },
+        "confirmation": {
+        "type": "redirect",
+        "return_url": "http://127.0.0.1:8000/payment-success/"
+        },
+        "capture": True,
+        "description": f"Оплата {product.name}"
+    }, str(uuid.uuid4()))  # обязательно str(uuid4())
+
+    payment_id = payment.id  # берём id платежа
+    Order.objects.create(
+        product=product,
+        payment_id=payment_id,
+        status="pending"
+    )
+
+    return redirect(payment.confirmation.confirmation_url)
+
+def payment_success(request):
+    return render(request, "payment_success.html")
 
 def register_view(request):
     if request.method == 'POST':
