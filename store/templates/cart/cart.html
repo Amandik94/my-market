@@ -35,9 +35,7 @@
         </table>
         <div class="text-end">
             <h4>Общая сумма: {{ total_price }} ₸</h4>
-            {% for item in items %}
-            <a href="{% url 'create_payment' item.product.id %}" class="btn btn-success">Оплатить</a>
-            {% endfor %}
+            <a href="{% url 'create_payment' items.0.product.id %}" class="btn btn-success">Оплатить</a>
         </div>
     {% else %}
         <p>Ваша корзина пуста.</p>

@@ -2,11 +2,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from .forms import RegisterForm, LoginForm
-from .models import Product, Order
-from .cart import Cart, CartItem
+from .models import Product, Order, Cart, CartItem
 from yookassa import Configuration, Payment
 from django.conf import settings
 import uuid
+from django.http import JsonResponse
 
 Configuration.account_id = settings.YOOKASSA_SHOP_ID
 Configuration.secret_key = settings.YOOKASSA_SHOP_KEY
@@ -109,13 +109,20 @@ def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     cart, _ = Cart.objects.get_or_create(user=request.user)
 
-    try:
-        cart_item = CartItem.objects.get(cart=cart, product=product)
+    cart_item, created = CartItem.objects.get_or_create(
+        cart=cart,
+        product=product
+    )
+
+    if not created:
         cart_item.quantity += 1
         cart_item.save()
-    except CartItem.DoesNotExist:
-        CartItem.objects.create(cart=cart, product=product, quantity=1)
-    return redirect('view_cart')
+
+    cart_count = sum(item.quantity for item in cart.items.all())
+
+    return JsonResponse({
+        'cart_count': cart_count
+    })
 
 @login_required
 def remove_from_cart(request, product_id):
