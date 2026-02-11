@@ -69,25 +69,6 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      document.querySelectorAll('.add-to-cart').forEach(button => {
-          button.addEventListener('click', function() {
-              const productId = this.dataset.id;
-
-              fetch(`/add-to-cart/${productId}/`, {
-                  method: 'POST',
-                  headers: {
-                      'X-CSRFToken': '{{ csrf_token }}',
-                      'Content-Type': 'application/json'
-                  }
-              })
-              .then(response => response.json())
-              .then(data => {
-                  document.getElementById('cart-count').textContent = data.cart_count;
-              });
-          });
-      });
-    </script>
 
   </body>
 </html>

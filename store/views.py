@@ -37,6 +37,8 @@ def create_payment(request, product_id):
     return redirect(payment.confirmation.confirmation_url)
 
 def payment_success(request):
+    cart = get_object_or_404(Cart, user=request.user)
+    cart.items.all().delete()  # Очистка корзины
     return render(request, "payment_success.html")
 
 def register_view(request):
@@ -118,11 +120,15 @@ def add_to_cart(request, product_id):
         cart_item.quantity += 1
         cart_item.save()
 
+    # считаем общее количество товаров в корзине
     cart_count = sum(item.quantity for item in cart.items.all())
 
-    return JsonResponse({
-        'cart_count': cart_count
-    })
+    # проверяем, пришёл ли AJAX-запрос
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'cart_count': cart_count})
+    
+    # обычный POST — редирект на страницу корзины
+    return redirect('view_cart')
 
 @login_required
 def remove_from_cart(request, product_id):

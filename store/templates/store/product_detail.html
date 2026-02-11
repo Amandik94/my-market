@@ -16,16 +16,14 @@
             Цена: <span class="text-success">{{ product.price }} тг.</span>
           </h4>
 
-          <form method="post" action="{% url 'add_to_cart' product.id %}">
+          <!-- Форма оставляем для работы без JS -->
+          <form method="post" action="{% url 'add_to_cart' product.id %}" class="d-flex gap-2">
             {% csrf_token %}
-            <div class="d-flex gap-2">
-              <button type="submit" class="btn btn-primary" data-id="{{ product.id }}">
-                🛒 Добавить в корзину
-              </button>
-              <a href="{% url 'product_list' %}" class="btn btn-outline-secondary">
-                ← Назад
-              </a>
-            </div>
+            <button type="submit" class="btn btn-primary add-to-cart" data-id="{{ product.id }}">
+              🛒 Добавить в корзину
+            </button>
+            <a href="{% url 'view_cart' %}" class="btn btn-primary">Перейти в корзину</a>
+            <a href="{% url 'product_list' %}" class="btn btn-outline-secondary">← Назад</a>
           </form>
 
         </div>
@@ -33,4 +31,34 @@
     </div>
   </div>
 </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.add-to-cart').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault(); // предотвращаем обычный POST
+
+            const productId = this.dataset.id;
+
+            fetch(`/add-to-cart/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // обновляем цифру в navbar
+                document.getElementById('cart-count').textContent = data.cart_count;
+            })
+            .catch(error => console.error('Ошибка при добавлении в корзину:', error));
+        });
+    });
+});
+</script>
 {% endblock %}
